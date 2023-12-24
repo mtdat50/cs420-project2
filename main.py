@@ -1,26 +1,26 @@
 from functions import *
+from agent import Agent
 
-if __name__ == '__main__':
-    map, agentCoord = input('tests/test1.txt')
-    kb = []
-    dead = False
-    escape = False
-    foundExit = False
-    agent =
 
-    while not dead and not escape:
+def main():
+    map, agentCoord = input("tests/test1.txt")
+    agent = Agent()
+
+    while agent.isAlive and agent.escape():
         agent.updateInfo(map)
         nextRoom = []
-        if not foundExit:
+        if agent.foundExit:
             nextRoom = agent.forceAStep()
         else:
             nextRoom = agent.findASafeStep()
             if nextRoom == [-1, -1]:
                 nextRoom = [1, 1]
                 escape = True
-        
-        agent.playPath(map)
 
+        agent.playPath(nextRoom)
 
+def updateMap(shotRoomCoord):
+    pass
 
-    
+if __name__ == "__main__":
+    main()
