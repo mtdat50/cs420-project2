@@ -1,8 +1,10 @@
 import reward
+from knownledgeBase import *
+
 
 class Agent:
     def __init__(self):
-        self.__kb = []
+        self.__kb = KnownledgeBase()
         self.__agentLoc = []
         self.__safe = []
         self.__visited = []
