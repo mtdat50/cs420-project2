@@ -1,3 +1,5 @@
+from map import Map
+
 R = [-1, 0, 1, 0]
 C = [0, -1, 0, 1]
 
@@ -22,7 +24,7 @@ def input(filePath):
                     map[i][j] += 'B'
                 if map[i + R[k]][j + C[k]] == 'W' and 'S' not in map[i][j]:
                     map[i][j] += 'S'
-                
-    return map, agentLoc
+    
+    return Map(n, map), agentLoc
 # map = input('tests/test1.txt')
 # print(map)

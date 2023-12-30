@@ -1,13 +1,64 @@
 import reward
 from knownledgeBase import *
+from dpll import *
+from collections import deque
+
+R = [-1, 0, 1, 0]
+C = [0, -1, 0, 1]
+
+def nearestSafeCell(self, n): #return coordinate
+    vst = set()
+    q = deque()
+    q.append(self.__agentLoc)
+    result = []
+
+    while len(result) == 0:
+        r = q[0][0]
+        c = q[0][1]
+        q.popleft()
+        vst.add([r, c])
+
+        for k in range(0, 4):
+            newR = r + R[k]
+            newC = c + C[k]
+
+            if newR < 0 or n < newR or newC < 0 or n < newC:
+                continue
+            
+            newCell = str(newR) + '_' + str(newC)
+            if newCell in self.__safe:
+                result = [newR, newC]
+                self.__visited.append(newCell)
+                self.__safe.remove(newCell)
+                break
+            elif newCell in self.__visited and [newR, newC] not in vst:
+                vst.add([newR, newC])
+                q.append([newR, newC])
+    
+    return result
+
+
+def findASafeStep(self, mapSize): #return coordinate
+    #update safe list
+    result, groundTruth = unitPropagation(self.__kb.__clauses)
+    for cell in self.__unknown:
+        p = 'P' + cell
+        w = 'W' + cell
+        if groundTruth[p] != None and groundTruth[w] != None:
+            self.__unknown.remove(cell)
+            if not groundTruth[p] and not groundTruth[w]:
+                self.__safe.append(cell)
+
+    return nearestSafeCell(self, mapSize)
 
 
 class Agent:
     def __init__(self):
         self.__kb = KnownledgeBase()
-        self.__agentLoc = []
-        self.__safe = []
-        self.__visited = []
+        self.__agentLoc = []    #location,                  format: [row, col]
+        self.__unknown = []     #frontier cells, unknown,   format: 'row_col'
+        self.__safe = []        #frontier cells, safe,      format: 'row_col'
+        self.__visited = []     #visited cells,             format: 'row_col'
         self.__foundExit = False
         self.__isAlive = True
         self.__point = 0
@@ -21,14 +72,11 @@ class Agent:
     def updateKB(self):
         pass
 
-    def inferenceKB(self):
-        pass
-
     def forceAStep(self):
         pass
 
-    def findASafeStep(self):
-        pass
+    findASafeStep = findASafeStep
+    nearestSafeCell = nearestSafeCell
 
     def updateInfo(self, map):
         pass

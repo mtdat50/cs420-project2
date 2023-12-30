@@ -1,20 +1,24 @@
 from dpll import *
 
+
+def solve(self, assignment, allowBranching = False):
+    if allowBranching:
+        result, assignment = dpll(self.__clauses)
+    else:
+        result, assignment = unitPropagation(self.__clauses)
+    return assignment
+
+def addClause(self, clause):
+    self.__clauses.append(clause)
+    for literal in clause:
+        var = literal.replace('-', '')
+        if var not in self.__vars:
+            self.__vars.append(var)
+
 class KnownledgeBase:
     def __init__(self):
-        self.__kb = []
+        self.__clauses = []
         self.__vars = []
 
-    def solve(self, assignment, allowBranching = False):
-        result, assignment = 0, 0
-        if allowBranching:
-            result, assignment = dpll(self.__kb, assignment)
-        else:
-            result, assignment = unitPropagation(self.__kb, assignment)
-        return assignment
-    
-    def add(self, clause):
-        self.__kb.append(clause)
-        for var in clause:
-            if var not in self.__vars:
-                self.__vars.append(var)
+    solve = solve
+    addClause = addClause

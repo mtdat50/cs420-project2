@@ -1,10 +1,11 @@
 from functions import *
 from agent import Agent
+from map import Map
 
 
 def main():
-    map, agentCoord = input("tests/test1.txt")
     agent = Agent()
+    map, agent.agentLoc = input("tests/test1.txt")
 
     while agent.isAlive and agent.escape():
         agent.updateInfo(map)
@@ -12,7 +13,7 @@ def main():
         if agent.foundExit:
             nextRoom = agent.forceAStep()
         else:
-            nextRoom = agent.findASafeStep()
+            nextRoom = agent.findASafeStep(map.size())
             if nextRoom == [-1, -1]:
                 nextRoom = [1, 1]
                 escape = True

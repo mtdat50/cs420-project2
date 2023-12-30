@@ -9,7 +9,7 @@ def simplify_clause(clauses, assignment):
         simplifiedClauses.append(simplifiedClause)
     return simplifiedClauses
 
-def unitPropagation(clauses, assignment):
+def unitPropagation(clauses, assignment = {}):
     unit_clauses = [clause[0] for clause in clauses if len(clause) == 1]
     while unit_clauses:
         literal = unit_clauses[0]
@@ -28,7 +28,7 @@ def choose_literal(clauses):
         for literal in clause:
             return literal
 
-def dpll(clauses, assignment):
+def dpll(clauses, assignment = {}):
     clauses, assignment = unitPropagation(clauses, assignment)
     if clauses == "UNSAT":
         return "UNSAT", {}
