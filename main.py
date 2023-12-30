@@ -7,7 +7,7 @@ def main():
     agent = Agent()
     map, agent.agentLoc = input("tests/test1.txt")
 
-    while agent.isAlive and agent.escape():
+    while agent.isAlive and agent.isEscaping():
         agent.updateInfo(map)
         nextRoom = []
         if agent.foundExit:
@@ -16,7 +16,7 @@ def main():
             nextRoom = agent.findASafeStep(map.size())
             if nextRoom == [-1, -1]:
                 nextRoom = [1, 1]
-                escape = True
+                agent.escape()
 
         agent.playPath(nextRoom)
 

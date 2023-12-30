@@ -6,6 +6,13 @@ from collections import deque
 R = [-1, 0, 1, 0]
 C = [0, -1, 0, 1]
 
+def escape(self):
+    self.__isEscaping = True
+
+def isEscaping(self):
+    return self.__isEscaping
+
+
 def nearestSafeCell(self, n): #return coordinate
     vst = set()
     q = deque()
@@ -62,12 +69,13 @@ class Agent:
         self.__foundExit = False
         self.__isAlive = True
         self.__point = 0
+        self.__isEscaping = False
 
     def __str__(self):
         pass
 
-    def escape(self):
-        pass
+    escape = escape
+    isEscaping = isEscaping
 
     def updateKB(self):
         pass
