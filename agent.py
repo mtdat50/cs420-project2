@@ -7,23 +7,23 @@ R = [-1, 0, 1, 0]
 C = [0, -1, 0, 1]
 
 def escape(self):
-    self.__isEscaping = True
+    self._Agent__isEscaping = True
 
 def isEscaping(self):
-    return self.__isEscaping
+    return self._Agent__isEscaping
 
 
 def nearestSafeCell(self, n): #return coordinate
     vst = set()
     q = deque()
-    q.append(self.__agentLoc)
-    result = []
+    q.append(self.agentLoc)
+    result = [-1, -1]
 
-    while len(result) == 0:
+    while len(q) != 0:
         r = q[0][0]
         c = q[0][1]
         q.popleft()
-        vst.add([r, c])
+        vst.add((r, c))
 
         for k in range(0, 4):
             newR = r + R[k]
@@ -33,12 +33,12 @@ def nearestSafeCell(self, n): #return coordinate
                 continue
             
             newCell = str(newR) + '_' + str(newC)
-            if newCell in self.__safe:
+            if newCell in self._Agent__safe:
                 result = [newR, newC]
-                self.__visited.append(newCell)
-                self.__safe.remove(newCell)
+                self.visited.append(newCell)
+                self.safe.remove(newCell)
                 break
-            elif newCell in self.__visited and [newR, newC] not in vst:
+            elif newCell in self.visited and (newR, newC) not in vst:
                 vst.add([newR, newC])
                 q.append([newR, newC])
     
@@ -47,14 +47,14 @@ def nearestSafeCell(self, n): #return coordinate
 
 def findASafeStep(self, mapSize): #return coordinate
     #update safe list
-    result, groundTruth = unitPropagation(self.__kb.__clauses)
-    for cell in self.__unknown:
+    result, groundTruth = unitPropagation(self.kb.clauses)
+    for cell in self.unknown:
         p = 'P' + cell
         w = 'W' + cell
         if groundTruth[p] != None and groundTruth[w] != None:
-            self.__unknown.remove(cell)
+            self.unknown.remove(cell)
             if not groundTruth[p] and not groundTruth[w]:
-                self.__safe.append(cell)
+                self.safe.append(cell)
 
     return nearestSafeCell(self, mapSize)
 
@@ -75,7 +75,7 @@ class Agent:
         pass
 
     escape = escape
-    isEscaping = isEscaping
+    # isEscaping = isEscaping
 
     def updateKB(self):
         pass
@@ -99,10 +99,6 @@ class Agent:
     def kb(self):
         return self.__kb
 
-    @kb.setter
-    def kb(self, kb: list):
-        self.__kb = kb
-
     @property
     def agentLoc(self):
         return self.__agentLoc
@@ -112,12 +108,12 @@ class Agent:
         self.__agentLoc = agentLoc
 
     @property
+    def unknown(self):
+        return self.__unknown
+
+    @property
     def safe(self):
         return self.__safe
-
-    @safe.setter
-    def safe(self, safe: list):
-        self.__safe = safe
 
     @property
     def visited(self):
@@ -150,3 +146,11 @@ class Agent:
     @point.setter
     def point(self, point):
         self.__point = point
+
+    @property
+    def isEscaping(self):
+        return self.__isEscaping
+    
+    @isEscaping.setter
+    def isEscaping(self, isEscaping: bool):
+        self.__isEscaping = isEscaping
