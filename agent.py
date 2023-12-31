@@ -6,11 +6,6 @@ from collections import deque
 R = [-1, 0, 1, 0]
 C = [0, -1, 0, 1]
 
-def escape(self):
-    self._Agent__isEscaping = True
-
-def isEscaping(self):
-    return self._Agent__isEscaping
 
 
 def nearestSafeCell(self, n): #return coordinate
@@ -29,17 +24,16 @@ def nearestSafeCell(self, n): #return coordinate
             newR = r + R[k]
             newC = c + C[k]
 
-            if newR < 0 or n < newR or newC < 0 or n < newC:
+            if min(newR, newC) < 1 or n < max(newR, newC):
                 continue
             
             newCell = str(newR) + '_' + str(newC)
             if newCell in self._Agent__safe:
                 result = [newR, newC]
-                self.visited.append(newCell)
                 self.safe.remove(newCell)
                 break
             elif newCell in self.visited and (newR, newC) not in vst:
-                vst.add([newR, newC])
+                vst.add((newR, newC))
                 q.append([newR, newC])
     
     return result
@@ -47,16 +41,63 @@ def nearestSafeCell(self, n): #return coordinate
 
 def findASafeStep(self, mapSize): #return coordinate
     #update safe list
-    result, groundTruth = unitPropagation(self.kb.clauses)
+    # print(self.kb.clauses)
+    result, groundTruth = unitPropagation(self.kb.clauses, {})
+    print(result, groundTruth)
     for cell in self.unknown:
         p = 'P' + cell
         w = 'W' + cell
-        if groundTruth[p] != None and groundTruth[w] != None:
+        if groundTruth.get(p) != None and groundTruth.get(w) != None:
             self.unknown.remove(cell)
             if not groundTruth[p] and not groundTruth[w]:
                 self.safe.append(cell)
 
     return nearestSafeCell(self, mapSize)
+
+
+def perceiveEnvironment(self, map):
+    # visited
+    currentCell = str(self.agentLoc[0]) + '_' + str(self.agentLoc[1])
+    print('map :', map[self.agentLoc[0]][self.agentLoc[1]])
+    if currentCell in self.visited:
+        return
+    self.visited.append(currentCell)
+    
+    if currentCell == '1_1':
+        self.foundExit = True
+    
+    # gold
+    if 'G' in map[self.agentLoc[0]][self.agentLoc[1]]:
+        self.point += 1000
+
+    surroundingCells = []
+    for k in range(0, 4):
+        newR = self.agentLoc[0] + R[k]
+        newC = self.agentLoc[1] + C[k]
+        newCell = str(newR) + '_' + str(newC)
+        if min(newR, newC) < 1 or map.size() < max(newR, newC):
+            continue
+        if newCell not in self.unknown and \
+            newCell not in self.safe and \
+            newCell not in self.visited:
+            self.unknown.append(newCell)
+        surroundingCells.append(newCell)
+
+    # breeze
+    if 'B' in map[self.agentLoc[0]][self.agentLoc[1]]:
+        PClause = [('P' + cell) for cell in surroundingCells]
+        self.kb.addClause(PClause)
+    else:
+        for cell in surroundingCells:
+            self.kb.addClause(['-P' + cell])
+
+    # stench
+    if 'S' in map[self.agentLoc[0]][self.agentLoc[1]]:
+        PClause = [('W' + cell) for cell in surroundingCells]
+        self.kb.addClause(PClause)
+    else:
+        for cell in surroundingCells:
+            self.kb.addClause(['-W' + cell])
 
 
 class Agent:
@@ -74,11 +115,7 @@ class Agent:
     def __str__(self):
         pass
 
-    escape = escape
-    # isEscaping = isEscaping
-
-    def updateKB(self):
-        pass
+    perceiveEnvironment = perceiveEnvironment
 
     def forceAStep(self):
         pass

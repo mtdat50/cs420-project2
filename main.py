@@ -9,21 +9,23 @@ def main():
 
     # agent.foundExit = True
     while agent.isAlive and not agent.isEscaping:
-        agent.updateInfo(map)
+        print('===========================', agent.agentLoc)
+        agent.perceiveEnvironment(map)
+        print(agent.kb.clauses)
+
         nextRoom = []
         if agent.foundExit:
             nextRoom = agent.findASafeStep(map.size())
-
             if nextRoom == [-1, -1]:
                 nextRoom = [1, 1]
                 agent.isEscaping = True
+                print('escapse')
                 
-            if nextRoom == [1, 1]:
-                agent.foundExit = True
-        else:
-            nextRoom = agent.forceAStep()
+        # else:
+        #     nextRoom = agent.forceAStep()
 
         agent.playPath(nextRoom)
+        agent.agentLoc = nextRoom
 
 def updateMap(shotRoomCoord):
     pass

@@ -1,3 +1,4 @@
+from audioop import reverse
 from map import Map
 
 R = [-1, 0, 1, 0]
@@ -13,6 +14,8 @@ def input(filePath):
             map.append(line.replace('-', '').split('.'))
         map.append(['' for i in range(n + 2)])
 
+    map.reverse()
+    
     agentLoc = [0, 0]
     for i in range(1, n + 1):
         for j in range(1, n + 1):
