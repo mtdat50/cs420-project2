@@ -5,7 +5,7 @@ def solve(self, assignment, allowBranching = False):
     if allowBranching:
         result, assignment = dpll(self.clauses)
     else:
-        result, assignment = unitPropagation(self.clauses)
+        result, assignment = unitPropagation(self.clauses, {})
     return assignment
 
 def addClause(self, clause):
