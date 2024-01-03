@@ -19,21 +19,22 @@ def main():
 
     loop_n = map.size() + 1 # true loop size, not map's size
 
-    # agent.foundExit = True
-    # while agent.isAlive and not agent.isEscaping:
-    #     print('===========================', agent.agentLoc)
-    #     agent.perceiveEnvironment(map)
-    #     print('kb: ', agent.kb.clauses)
 
-    #     nextRoom = []
-    #     if agent.foundExit:
-    #         nextRoom = agent.findASafeStep(map.size())
-    #         if nextRoom == [-1, -1]:
+    # while agent.isAlive and not agent.isEscaping:
+    #     # print('===========================', agent.agentLoc)
+    #     agent.perceiveEnvironment(map)
+    #     # print('kb: ', agent.kb.clauses)
+
+    #     nextRoom = agent.findASafeStep(map.size())
+    #     if nextRoom == [-1, -1]:
+    #         nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
+    #         print('isShooting', isShooting)
+    #         if maybePit and agent.foundExit:
     #             nextRoom = [1, 1]
     #             agent.isEscaping = True
     #             print('escapse')
-    #     # else:
-    #     #     nextRoom = agent.forceAStep()
+
+    #     print(nextRoom)
 
     #     agent.playPath(nextRoom)
     #     agent.agentLoc = nextRoom

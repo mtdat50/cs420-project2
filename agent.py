@@ -6,9 +6,57 @@ from collections import deque
 R = [-1, 0, 1, 0]
 C = [0, -1, 0, 1]
 
+def forceAStep(self, n): #return coordinate
+    result, groundTruth = unitPropagation(self.kb.clauses, {})
+
+    vst = set()
+    q = deque()
+    q.append(self.agentLoc)
+    result = [-1, -1]
+    shooting = False
+    maybePit = True
+
+    while len(q) != 0:
+        r = q[0][0]
+        c = q[0][1]
+        q.popleft()
+        vst.add((r, c))
+        if (r, c) == (2, 1):
+            i = 0
+
+        for k in range(0, 4):
+            newR = r + R[k]
+            newC = c + C[k]
+
+            if min(newR, newC) < 1 or n < max(newR, newC) \
+                or (newR, newC) in vst:
+                continue
+            
+            newCell = str(newR) + '_' + str(newC)
+            p = 'P' + newCell
+            w = 'W' + newCell
+            if newCell not in self.visited \
+                and (newCell in self.unknown or not groundTruth.get(p)):
+                if groundTruth.get(p) == False: # not pit, could be wumpus
+                    result = [newR, newC]
+                    shooting = True
+                    maybePit = False
+                    q.clear() # found a room that is not pit
+                    break
+                elif groundTruth.get(p) == None and result == [-1, -1]: # could be pit
+                    result = [newR, newC]
+                    if groundTruth.get(w) != False:
+                        shooting = True
+            elif newCell in self.visited:
+                vst.add((newR, newC))
+                q.append([newR, newC])
+    
+    return result, shooting, maybePit
 
 
 def nearestSafeCell(self, n): #return coordinate
+    if (self.agentLoc[0], self.agentLoc[1]) == (3, 1):
+        iodjhgisdg = 0
     vst = set()
     q = deque()
     q.append(self.agentLoc)
@@ -28,9 +76,10 @@ def nearestSafeCell(self, n): #return coordinate
                 continue
             
             newCell = str(newR) + '_' + str(newC)
-            if newCell in self._Agent__safe:
+            if newCell in self.safe:
                 result = [newR, newC]
                 self.safe.remove(newCell)
+                q.clear() #found nearest safe room
                 break
             elif newCell in self.visited and (newR, newC) not in vst:
                 vst.add((newR, newC))
@@ -43,7 +92,7 @@ def findASafeStep(self, mapSize): #return coordinate
     #update safe list
     # print(self.kb.clauses)
     result, groundTruth = unitPropagation(self.kb.clauses, {})
-    print(result, groundTruth)
+    # print(result, groundTruth)
     for cell in self.unknown:
         p = 'P' + cell
         w = 'W' + cell
@@ -117,8 +166,7 @@ class Agent:
 
     perceiveEnvironment = perceiveEnvironment
 
-    def forceAStep(self):
-        pass
+    forceAStep = forceAStep
 
     findASafeStep = findASafeStep
     nearestSafeCell = nearestSafeCell
