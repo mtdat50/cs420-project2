@@ -5,7 +5,7 @@ import sys
 import pygame
 from Object import Cell
 from Player import Player
-from Object import Object
+from Object import Object, Wumpus, Arrow
 from constants import CELL_SIZE
 from sys import argv 
 import reward
@@ -17,8 +17,6 @@ def getCellIDinGroup(pos_x: int, pos_y: int, map_size: int):
 def check_breeze_stench_overwritting(cell_info):
     if 'W' in cell_info:
         return False
-    if 'A' in cell_info:
-        return False
     if 'P' in cell_info:
         return False
     
@@ -27,7 +25,7 @@ def check_breeze_stench_overwritting(cell_info):
 def main():
     agent = Agent()
     # map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
-    map, agent.agentLoc = Map.input("tests/test4.txt")
+    map, agent.agentLoc = Map.input("tests/test10.txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
@@ -52,6 +50,7 @@ def main():
 
     # Monster Group
     monsterGroups = pygame.sprite.Group()
+    monsters = []
 
     # Gold Group
     goldGroup = pygame.sprite.Group()
@@ -83,18 +82,17 @@ def main():
                 pitGroups.add(newPitGroup)
 
             if 'W' in map[y][x]:
-                newMonsterGroup = pygame.sprite.Group()
-                monster = Object("Graphics\\zombie_ogre.png", new_cell, initial_scale=INIT_ZOOM)
-                newMonsterGroup.add(monster)
+                monster = Wumpus("Graphics\\zombie_ogre.png", new_cell, initial_scale=INIT_ZOOM)
                 if check_breeze_stench_overwritting(map[y][x-1]):
-                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0]-CELL_SIZE, monster.rect.center[1]), initial_scale=1.5))
+                    monster.add_stench(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0]-CELL_SIZE, monster.rect.center[1]), initial_scale=1.5))
                 if check_breeze_stench_overwritting(map[y][x+1]):
-                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0]+CELL_SIZE, monster.rect.center[1]), initial_scale=1.5))
+                    monster.add_stench(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0]+CELL_SIZE, monster.rect.center[1]), initial_scale=1.5))
                 if check_breeze_stench_overwritting(map[y-1][x]):
-                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0], monster.rect.center[1]+CELL_SIZE), initial_scale=1.5))
+                    monster.add_stench(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0], monster.rect.center[1]+CELL_SIZE), initial_scale=1.5))
                 if check_breeze_stench_overwritting(map[y+1][x]):
-                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0], monster.rect.center[1]-CELL_SIZE), initial_scale=1.5))
-                monsterGroups.add(newMonsterGroup)
+                    monster.add_stench(Object("Graphics\\cloud_poison_1.png", cell_center=(monster.rect.center[0], monster.rect.center[1]-CELL_SIZE), initial_scale=1.5))
+                monsterGroups.add(monster.group)
+                monsters.append(monster)
 
             if 'G' in map[y][x]:
                 newGold = Object("Graphics\\chest.png", new_cell, initial_scale=INIT_ZOOM)
@@ -111,12 +109,16 @@ def main():
     playerGroup.add(player)
     fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
 
+    # Arrow Group
+    arrowGroup = pygame.sprite.Group()
+
     # Misc
     pause = True
     fog = True
     
     path = []
     isShooting = False
+    waiting_for_arrow = False
     # Main game loop
     while (agent.isAlive and not agent.isEscaping) or len(path) != 0:
         for event in pygame.event.get():
@@ -160,6 +162,10 @@ def main():
                 path.pop(0)
                 if len(path) == 0 and isShooting:
                     agent.shoot(nextRoom, map)
+                    arrow = Arrow(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].rect,
+                                   cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
+                    arrowGroup.add(arrow)
+                    waiting_for_arrow = True
                 player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
                 agent.agentLoc = nextRoom
                 fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
@@ -193,6 +199,21 @@ def main():
         if fog:
             fogGroup.draw(screen)
             fogGroup.update()
+
+        arrowGroup.draw(screen)
+        arrowGroup.update()
+
+        if waiting_for_arrow:
+            # Check if the arrow has reached the target cell
+            if arrowGroup.sprites()[0].reached_target:
+                waiting_for_arrow = False
+                print("Arrow reached the target cell!")
+                for monster in monsters:
+                    if monster.check_killed(arrowGroup.sprites()[0]):
+                        for sprite in monster.group:
+                            monsterGroups.remove(sprite)
+                arrowGroup.remove(arrowGroup.sprites()[0])
+
 
         pygame.display.flip()
 
