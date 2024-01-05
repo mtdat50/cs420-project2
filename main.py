@@ -28,33 +28,14 @@ def check_breeze_stench_overwritting(cell_info):
 
 def main():
     agent = Agent()
-    map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
+    # map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
+    map, agent.agentLoc = input("tests/test1.txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
         for x in range(1, loop_n):
             print(map[y][x], end=",")
         print()
-
-
-    # while agent.isAlive and not agent.isEscaping:
-    #     # print('===========================', agent.agentLoc)
-    #     agent.perceiveEnvironment(map)
-    #     # print('kb: ', agent.kb.clauses)
-
-    #     nextRoom = agent.findASafeStep(map.size())
-    #     if nextRoom == [-1, -1]:
-    #         nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
-    #         print('isShooting', isShooting)
-    #         if maybePit and agent.foundExit:
-    #             nextRoom = [1, 1]
-    #             agent.isEscaping = True
-    #             print('escapse')
-
-    #     print(nextRoom)
-
-    #     agent.playPath(nextRoom)
-    #     agent.agentLoc = nextRoom
 
     # General initializations
     pygame.display.set_caption('Wumpus World')
