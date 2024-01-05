@@ -184,7 +184,6 @@ def shoot(self, target, map):
     for r in range(1, map.size() + 1):
         for c in range(1, map.size() + 1):
             map[r][c] = map[r][c].replace('S', '')
-            map[r][c] = map[r][c].replace('B', '')
     map.updateInfo()
 
     if 'S' not in map[self.agentLoc[0]][self.agentLoc[1]]: # if stench disappear

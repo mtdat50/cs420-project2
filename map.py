@@ -9,9 +9,9 @@ def updateInfo(self):
     for i in range(1, n + 1):
         for j in range(1, n + 1):
             for k in range(4):
-                if self[i + R[k]][j + C[k]] == 'P' and 'B' not in self[i][j]:
+                if 'P' in self[i + R[k]][j + C[k]] and 'B' not in self[i][j]:
                     self[i][j] += 'B'
-                if self[i + R[k]][j + C[k]] == 'W' and 'S' not in self[i][j]:
+                if 'W' in self[i + R[k]][j + C[k]] and 'S' not in self[i][j]:
                     self[i][j] += 'S'
     
 
