@@ -22,7 +22,6 @@ class Cell(pygame.sprite.Sprite):
         # Set Rect
         self.rect = self.image.get_rect()
         self.rect.topleft = (pos_x, pos_y)
-        print(self.rect.topleft)
         
         # Set fog
         self.fog = Object("Graphics\\unseen.png", self, initial_scale=INIT_ZOOM)

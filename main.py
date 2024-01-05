@@ -8,6 +8,7 @@ from Object import Cell
 from Player import Player
 from Object import Object
 from constants import CELL_SIZE
+from sys import argv 
 
 def getCellIDinGroup(pos_x: int, pos_y: int, map_size: int):
     # print(pos_x, pos_y, map_size, pos_x - 1 + (map_size - pos_y) * map_size)
@@ -27,7 +28,7 @@ def check_breeze_stench_overwritting(cell_info):
 
 def main():
     agent = Agent()
-    map, agent.agentLoc = input("tests/test2.txt")
+    map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
@@ -174,16 +175,15 @@ def main():
         cellGroup.draw(screen)
         cellGroup.update()
 
-        pitGroups.draw(screen)
-        pitGroups.update()
         
         monsterGroups.draw(screen)
         monsterGroups.update()
 
+        pitGroups.draw(screen)
+        pitGroups.update()
+
         goldGroup.draw(screen)
         goldGroup.update()
-
-        doorGroup.draw(screen)
 
         playerGroup.draw(screen)
         playerGroup.update()
@@ -191,7 +191,6 @@ def main():
         if fog:
             fogGroup.draw(screen)
             fogGroup.update()
-
 
         pygame.display.flip()
 
