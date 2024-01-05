@@ -37,15 +37,15 @@ def forceAStep(self, n): #return coordinate, isShooting, maybePit
             w = 'W' + newCell
             if newCell not in self.visited \
                 and (newCell in self.unknown or not groundTruth.get(p)):
-                if groundTruth.get(p) == False: # not pit, could be wumpus
+                if groundTruth.get(p) == False or not self.kb.findLiteral(p): # not pit, could be wumpus
                     result = [newR, newC]
                     shooting = True
                     maybePit = False
                     q.clear() # found a room that is not pit
                     break
-                elif groundTruth.get(p) == None and result == [-1, -1]: # could be pit
+                elif self.kb.findLiteral(p) and groundTruth.get(p) == None and result == [-1, -1]: # could be pit
                     result = [newR, newC]
-                    if groundTruth.get(w) != False:
+                    if self.kb.findLiteral(w) and groundTruth.get(w) != False:
                         shooting = True
             elif newCell in self.visited:
                 vst.add((newR, newC))
@@ -114,13 +114,32 @@ def perceiveEnvironment(self, map):
     self.visited.append(currentCell)
     if currentCell in self.safe:
         self.safe.remove(currentCell)
+    if currentCell in self.unknown:
+        self.unknown.remove(currentCell)
+
+    p = 'P' + currentCell
+    w = 'W' + currentCell
+    if 'P' not in map[self.agentLoc[0]][self.agentLoc[1]]:
+        p = '-' + p
+    exist = [1 for clause in self.kb.clauses if len(clause) == 1 and clause[0] == p]
+    if len(exist) == 0:
+        self.kb.addClause([p], '0_0')
+
+    if 'W' not in map[self.agentLoc[0]][self.agentLoc[1]]:
+        w = '-' + w
+    exist = [1 for clause in self.kb.clauses if len(clause) == 1 and clause[0] == w]
+    if len(exist) == 0:
+        self.kb.addClause([w], '0_0')
     
     if currentCell == '1_1':
         self.foundExit = True
     
     # gold
     if 'G' in map[self.agentLoc[0]][self.agentLoc[1]]:
-        self.point += 1000
+        self.point += reward.REWARD_FOR_GRABBING_GOLD
+    if 'B' in map[self.agentLoc[0]][self.agentLoc[1]] or\
+        'S' in map[self.agentLoc[0]][self.agentLoc[1]]:
+        self.point += reward.PUNISHMENT_FOR_DYING
 
     surroundingCells = []
     for k in range(0, 4):
@@ -178,6 +197,18 @@ def shoot(self, target, map):
         if min(newR, newC) < 1 or map.size() < max(newR, newC) or \
             (newR, newC) == (self.agentLoc[0], self.agentLoc[1]):
             continue
+
+        skip = True
+        for h in range(4):
+            adjR = newR + R[h]
+            adjC = newC + C[h]
+            if min(adjR, adjC) < 1 or map.size() < max(adjR, adjC):
+                continue
+            if (adjR, adjC) not in self.safe or (adjR, adjC) not in self.visited:
+                skip = False
+        if skip:
+            continue
+
         newCell = str(newR) + '_' + str(newC)
         if newCell in self.visited:
             self.visited.remove(newCell)
