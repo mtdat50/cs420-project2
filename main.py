@@ -1,4 +1,3 @@
-from functions import *
 from agent import Agent
 from map import Map
 from constants import *
@@ -29,7 +28,7 @@ def check_breeze_stench_overwritting(cell_info):
 def main():
     agent = Agent()
     # map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
-    map, agent.agentLoc = input("tests/test1.txt")
+    map, agent.agentLoc = Map.input("tests/test1.txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
@@ -117,8 +116,10 @@ def main():
     pause = True
     fog = True
     
+    path = []
+    isShooting = False
     # Main game loop
-    while agent.isAlive and not agent.isEscaping:
+    while (agent.isAlive and not agent.isEscaping) or len(path) != 0:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -131,27 +132,38 @@ def main():
                     fog = not fog
         
         if not pause:
-            # print('===========================', agent.agentLoc)
-            agent.perceiveEnvironment(map)
-            # print('kb: ', agent.kb.clauses)
+            if len(path) == 0:
+                # print('===========================', agent.agentLoc)
+                agent.perceiveEnvironment(map)
+                # print('kb: ', agent.kb.clauses)
 
-            nextRoom = agent.findASafeStep(map.size())
-            if nextRoom == [-1, -1]:
-                nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
-                print('isShooting', isShooting)
-                if maybePit and agent.foundExit:
-                    nextRoom = [1, 1]
-                    agent.isEscaping = True
-                    print('escape')
+                if (agent.agentLoc[0], agent.agentLoc[1]) == (3, 2):
+                    o = 0
+                nextRoom = agent.findASafeStep(map.size())
+                isShooting = False
+                if nextRoom == [-1, -1]:
+                    nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
+                    print('isShooting', isShooting)
+                    if maybePit and agent.foundExit:
+                        nextRoom = [1, 1]
+                        agent.isEscaping = True
+                        print('escape')
 
-            print(nextRoom)
+                print(nextRoom)
+                path = agent.playPath(nextRoom)
 
-            player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
-            agent.agentLoc = nextRoom
-
-            fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
+            if len(path) != 0:
+                nextRoom = path[0]
+                path.pop(0)
+                if len(path) == 0 and isShooting:
+                    agent.shoot(nextRoom, map)
+                player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
+                agent.agentLoc = nextRoom
+                fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
 
             pause = not pause
+
+                
 
         cellGroup.draw(screen)
         cellGroup.update()

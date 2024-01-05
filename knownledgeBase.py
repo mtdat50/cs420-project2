@@ -8,25 +8,30 @@ def solve(self, assignment, allowBranching = False):
         result, assignment = unitPropagation(self.clauses, {})
     return assignment
 
-def addClause(self, clause):
+def addClause(self, clause, source):
+    self.sources.append(source)
     self.clauses.append(clause)
-    for literal in clause:
-        var = literal.replace('-', '')
-        if var not in self.vars:
-            self.vars.append(var)
+
+def remove(self, source):
+    for i, s in enumerate(self.sources):
+        if s == source:
+            self.sources.pop(i)
+            self.clauses.pop(i)
+            break
 
 class KnownledgeBase:
     def __init__(self):
         self.__clauses = []
-        self.__vars = []
+        self.__sources = []
 
     solve = solve
     addClause = addClause
+    remove = remove
 
     @property
     def clauses(self):
         return self.__clauses
-
+    
     @property
-    def vars(self):
-        return self.__vars
+    def sources(self):
+        return self.__sources

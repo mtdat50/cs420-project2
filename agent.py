@@ -6,7 +6,7 @@ from collections import deque
 R = [-1, 0, 1, 0]
 C = [0, -1, 0, 1]
 
-def forceAStep(self, n): #return coordinate
+def forceAStep(self, n): #return coordinate, isShooting, maybePit 
     result, groundTruth = unitPropagation(self.kb.clauses, {})
 
     vst = set()
@@ -78,7 +78,6 @@ def nearestSafeCell(self, n): #return coordinate
             newCell = str(newR) + '_' + str(newC)
             if newCell in self.safe:
                 result = [newR, newC]
-                self.safe.remove(newCell)
                 q.clear() #found nearest safe room
                 break
             elif newCell in self.visited and (newR, newC) not in vst:
@@ -93,13 +92,15 @@ def findASafeStep(self, mapSize): #return coordinate
     # print(self.kb.clauses)
     result, groundTruth = unitPropagation(self.kb.clauses, {})
     # print(result, groundTruth)
-    for cell in self.unknown:
+    copyOfUnknown = self.unknown.copy()
+    for cell in copyOfUnknown:
         p = 'P' + cell
         w = 'W' + cell
         if groundTruth.get(p) != None and groundTruth.get(w) != None:
             self.unknown.remove(cell)
             if not groundTruth[p] and not groundTruth[w]:
-                self.safe.append(cell)
+                if cell not in self.safe:
+                    self.safe.append(cell)
 
     return nearestSafeCell(self, mapSize)
 
@@ -111,6 +112,8 @@ def perceiveEnvironment(self, map):
     if currentCell in self.visited:
         return
     self.visited.append(currentCell)
+    if currentCell in self.safe:
+        self.safe.remove(currentCell)
     
     if currentCell == '1_1':
         self.foundExit = True
@@ -135,18 +138,88 @@ def perceiveEnvironment(self, map):
     # breeze
     if 'B' in map[self.agentLoc[0]][self.agentLoc[1]]:
         PClause = [('P' + cell) for cell in surroundingCells]
-        self.kb.addClause(PClause)
+        self.kb.addClause(PClause, '0_0')
     else:
         for cell in surroundingCells:
-            self.kb.addClause(['-P' + cell])
+            self.kb.addClause(['-P' + cell], '0_0')
 
     # stench
     if 'S' in map[self.agentLoc[0]][self.agentLoc[1]]:
         PClause = [('W' + cell) for cell in surroundingCells]
-        self.kb.addClause(PClause)
+        self.kb.addClause(PClause, currentCell)
     else:
+        self.kb.remove(currentCell)
         for cell in surroundingCells:
-            self.kb.addClause(['-W' + cell])
+            self.kb.addClause(['-W' + cell], currentCell)
+
+
+def shoot(self, target, map):
+    self.point += reward.PUNISHMENT_FOR_SHOOTING
+    if 'W' not in map[target[0]][target[1]]: # no wumpus killed
+        return
+    
+    print(map._Map__map[target[0]][target[1]])
+    map[target[0]][target[1]] = map[target[0]][target[1]].replace('W', '')
+    print(map._Map__map[target[0]][target[1]])
+    for r in range(1, map.size() + 1):
+        for c in range(1, map.size() + 1):
+            map[r][c] = map[r][c].replace('S', '')
+            map[r][c] = map[r][c].replace('B', '')
+    map.updateInfo()
+
+    if 'S' not in map[self.agentLoc[0]][self.agentLoc[1]]: # if stench disappear
+        currentCell = str(self.agentLoc[0]) + '_' + str(self.agentLoc[1])
+        self.kb.remove(currentCell)
+    
+    for k in range(4):
+        newR = target[0] + R[k]
+        newC = target[1] + C[k]
+
+        if min(newR, newC) < 1 or map.size() < max(newR, newC) or \
+            (newR, newC) == (self.agentLoc[0], self.agentLoc[1]):
+            continue
+        newCell = str(newR) + '_' + str(newC)
+        if newCell in self.visited:
+            self.visited.remove(newCell)
+            if newCell not in self.safe:
+                self.safe.append(newCell)
+
+
+def playPath(self, des):
+    q = deque()
+    q.append(self.agentLoc)
+    trace = {}
+    trace[(self.agentLoc[0], self.agentLoc[1])] = (0, 0)
+
+    while len(q) != 0:
+        r = q[0][0]
+        c = q[0][1]
+        q.popleft()
+
+        for k in range(0, 4):
+            newR = r + R[k]
+            newC = c + C[k]
+            newCell = str(newR) + '_' + str(newC)
+            
+            if (newR, newC) == (des[0], des[1]): #found path
+                trace[(des[0], des[1])] = (r, c)
+                q.clear() 
+                break
+            elif newCell in self.visited and trace.get((newR, newC)) == None:
+                trace[(newR, newC)] = (r, c)
+                q.append([newR, newC])
+
+    # tracing path
+    r = des[0]
+    c = des[1]
+    result = []
+    while (r, c) != (self.agentLoc[0], self.agentLoc[1]):
+        result.append([r, c])
+        prevCell = trace[(r, c)]
+        r = prevCell[0]
+        c = prevCell[1]
+    result.reverse()
+    return result
 
 
 class Agent:
@@ -171,14 +244,9 @@ class Agent:
     findASafeStep = findASafeStep
     nearestSafeCell = nearestSafeCell
 
-    def updateInfo(self, map):
-        pass
+    playPath = playPath
 
-    def playPath(self, des):
-        pass
-
-    def shoot(self):
-        pass
+    shoot = shoot
 
     @property
     def kb(self):
