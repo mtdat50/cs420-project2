@@ -95,6 +95,8 @@ def main():
                 newGold = Object("Graphics\\chest.png", new_cell)
                 goldGroup.add(newGold)
 
+    cellGroup.add(Object("Graphics\\closed_door.png", cellGroup.sprites()[getCellIDinGroup(1, 1, map.size())]))
+
     # Player Group
     playerGroup = pygame.sprite.Group()
     player = Player("Graphics\\paladin.png", cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[0], agent.agentLoc[1], map.size())])
@@ -148,11 +150,12 @@ def main():
         goldGroup.draw(screen)
         goldGroup.update()
 
-
         playerGroup.draw(screen)
         playerGroup.update()
 
         pygame.display.flip()
+
+        print(agent.visited)
 
         clock.tick(120)
 
