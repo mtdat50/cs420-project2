@@ -177,7 +177,7 @@ def shoot(self, target, map):
     self.point += reward.PUNISHMENT_FOR_SHOOTING
     if 'W' not in map[target[0]][target[1]]: # no wumpus killed
         return
-    
+    self.point += reward.REWARD_FOR_KILLING_WUMPUS
     print(map._Map__map[target[0]][target[1]])
     map[target[0]][target[1]] = map[target[0]][target[1]].replace('W', '')
     print(map._Map__map[target[0]][target[1]])
