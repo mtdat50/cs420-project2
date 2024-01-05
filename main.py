@@ -2,7 +2,7 @@ from agent import Agent
 from map import Map
 from constants import *
 import sys
-import pygame
+import pygame, random
 from Object import Cell
 from Player import Player
 from Object import Object, Wumpus, Arrow
@@ -23,7 +23,7 @@ def check_breeze_stench_overwritting(cell_info):
 def main():
     agent = Agent()
     # map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
-    map, agent.agentLoc = Map.input("tests/test10.txt")
+    map, agent.agentLoc = Map.input("tests/test4.txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
@@ -120,12 +120,17 @@ def main():
     # Misc
     pause = True
     fog = True
+    isRunning = True
     
     path = []
     isShooting = False
     waiting_for_arrow = False
+
+    deathfont = pygame.font.SysFont("freesansbold" , 50 , bold = True)
+    death_noti = deathfont.render(f"A G E N T    D I E D", True, (233,150,122))
+    escape_noti = deathfont.render(f"E S C A P E D", True, (124,252,0))
     # Main game loop
-    while (agent.isAlive and not agent.isEscaping) or len(path) != 0:
+    while isRunning:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -134,51 +139,55 @@ def main():
                 if event.key == pygame.K_p:
                     # print("pause changed")
                     pause = not pause
+                    if not agent.isAlive or (agent.isEscaping and agent.agentLoc[0] == 1 and agent.agentLoc[1]==1):
+                        isRunning = False
+                        pause = True
                 if event.key == pygame.K_f:
                     fog = not fog
         
-        if not pause:
-            if len(path) == 0:
-                # print('===========================', agent.agentLoc)
-                agent.perceiveEnvironment(map)
-                # print('kb: ', agent.kb.clauses)
+        if (agent.isAlive and not agent.isEscaping) or len(path) != 0:
+            if not pause:
+                if len(path) == 0:
+                    # print('===========================', agent.agentLoc)
+                    agent.perceiveEnvironment(map)
+                    # print('kb: ', agent.kb.clauses)
 
-                # if (agent.agentLoc[0], agent.agentLoc[1]) == (2, 9):
-                #     o = 0
-                nextRoom = agent.findASafeStep(map.size())
-                isShooting = False
-                if nextRoom == [-1, -1]:
-                    nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
-                    print('isShooting', isShooting)
-                    print('maybePit', maybePit)
-                    if maybePit and agent.foundExit:
-                        nextRoom = [1, 1]
-                        agent.isEscaping = True
-                        print('escape')
+                    # if (agent.agentLoc[0], agent.agentLoc[1]) == (2, 9):
+                    #     o = 0
+                    nextRoom = agent.findASafeStep(map.size())
+                    isShooting = False
+                    if nextRoom == [-1, -1]:
+                        nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
+                        print('isShooting', isShooting)
+                        print('maybePit', maybePit)
+                        if maybePit and agent.foundExit:
+                            nextRoom = [1, 1]
+                            agent.isEscaping = True
+                            print('escape')
 
-                print(nextRoom)
-                path = agent.playPath(nextRoom)
-                if (nextRoom[0], nextRoom[1]) == (2, 9):
-                    o = 0
+                    print(nextRoom)
+                    path = agent.playPath(nextRoom)
+                    if (nextRoom[0], nextRoom[1]) == (2, 9):
+                        o = 0
 
-            if len(path) != 0:
-                agent.point += reward.PUNISHMENT_FOR_MOVING
-                nextRoom = path[0]
-                path.pop(0)
-                if len(path) == 0 and isShooting:
-                    agent.shoot(nextRoom, map)
-                    arrow = Arrow(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].rect,
-                                   cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
-                    arrowGroup.add(arrow)
-                    waiting_for_arrow = True
-                player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
-                agent.agentLoc = nextRoom
-                fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
+                if len(path) != 0:
+                    agent.point += reward.PUNISHMENT_FOR_MOVING
+                    nextRoom = path[0]
+                    path.pop(0)
+                    if len(path) == 0 and isShooting:
+                        agent.shoot(nextRoom, map)
+                        arrow = Arrow(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].rect,
+                                    cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
+                        arrowGroup.add(arrow)
+                        waiting_for_arrow = True
+                    player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
+                    agent.agentLoc = nextRoom
+                    fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
 
-            if not agent.isAlive:
-                print('die')
+                if not agent.isAlive:
+                    print("die")
 
-            pause = not pause
+                pause = not pause
         
                 
 
@@ -226,6 +235,14 @@ def main():
         # Draw score on the bottom menu
         score_surface = font.render(f"Score: {agent.point}", True, (0, 0, 0))
         screen.blit(score_surface, (10, screen_height + 20))
+
+        # Game over display
+        if not agent.isAlive:
+            screen.blit(death_noti, (10, screen_height/2))
+        
+        # Game victory display
+        if agent.isEscaping and agent.agentLoc[0] == 1 and agent.agentLoc[1]==1:
+            screen.blit(escape_noti, (10, screen_height/2))
 
         pygame.display.flip()
 
