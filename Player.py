@@ -8,3 +8,6 @@ class Player(pygame.sprite.Sprite):
         self.image = pygame.image.load(picture_path).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = cell.rect.center
+
+    def play_path(self, next_cell):
+        self.rect.center = next_cell.rect.center

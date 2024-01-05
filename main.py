@@ -11,13 +11,18 @@ from Object import Object
 from constants import CELL_SIZE
 
 def getCellIDinGroup(pos_x: int, pos_y: int, map_size: int):
-    return pos_x * map_size + pos_y
+    # print(pos_x, pos_y, map_size, pos_x + pos_y * map_size)
+    return pos_x - 1 + (map_size - pos_y) * map_size
 
 def main():
     agent = Agent()
     map, agent.agentLoc = input("tests/test1.txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
+    for y in range(loop_n-1, 0, -1):
+        for x in range(1, loop_n):
+            print(map[y][x], end=",")
+        print()
 
 
     # while agent.isAlive and not agent.isEscaping:
@@ -46,9 +51,9 @@ def main():
     font = pygame.font.SysFont("freesansbold" , 18 , bold = True)
 
     # Game screen
-    screen_width = loop_n * CELL_SIZE
-    screen_height = loop_n * CELL_SIZE
-    screen = pygame.display.set_mode((screen_width, screen_height), flags=pygame.HWSURFACE)
+    screen_width = map.size() * CELL_SIZE
+    screen_height = map.size() * CELL_SIZE
+    screen = pygame.display.set_mode((screen_width, screen_height), pygame.HWSURFACE|pygame.DOUBLEBUF|pygame.RESIZABLE)
 
     # Pits Group
     pitGroups = pygame.sprite.Group()
@@ -56,16 +61,19 @@ def main():
     # Monster Group
     monsterGroups = pygame.sprite.Group()
 
+    # Gold Group
+    goldGroup = pygame.sprite.Group()
+
     # Cell Group
     cellGroup = pygame.sprite.Group()
-    for i in range(loop_n):
-        for j in range(loop_n):
-            new_cell = Cell("Graphics\\catacombs_", CELL_SIZE/2 + CELL_SIZE * j, CELL_SIZE/2 + CELL_SIZE * i)
+    for y in range(loop_n-1, 0, -1):
+        for x in range(1, loop_n):
+            new_cell = Cell("Graphics\\catacombs_", CELL_SIZE/2 + CELL_SIZE * (x-1), CELL_SIZE/2 + CELL_SIZE * (loop_n - 1 - y))
             cellGroup.add(new_cell)
             
-            if 'P' in map[i][j]:
+            if 'P' in map[y][x]:
                 newPitGroup = pygame.sprite.Group()
-                pit = Object("Graphics\\shaft.png", new_cell)
+                pit = Object("Graphics\\trap_arrow.png", new_cell)
                 newPitGroup.add(pit)
                 newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left-CELL_SIZE, pos_y=pit.rect.top))
                 newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left+CELL_SIZE, pos_y=pit.rect.top))
@@ -73,7 +81,7 @@ def main():
                 newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left, pos_y=pit.rect.top+CELL_SIZE))
                 pitGroups.add(newPitGroup)
 
-            if 'W' in map[i][j]:
+            if 'W' in map[y][x]:
                 newMonsterGroup = pygame.sprite.Group()
                 monster = Object("Graphics\\zombie_ogre.png", new_cell)
                 newMonsterGroup.add(monster)
@@ -83,21 +91,50 @@ def main():
                 newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left, pos_y=monster.rect.top+CELL_SIZE))
                 monsterGroups.add(newMonsterGroup)
 
-
+            if 'G' in map[y][x]:
+                newGold = Object("Graphics\\chest.png", new_cell)
+                goldGroup.add(newGold)
 
     # Player Group
     playerGroup = pygame.sprite.Group()
-    player = Player("Graphics\\paladin.png", cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[0]-1, agent.agentLoc[1]-1, map.size())])
+    player = Player("Graphics\\paladin.png", cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[0], agent.agentLoc[1], map.size())])
     playerGroup.add(player)
+
+    # Misc
+    pause = True
     
     # Main game loop
-    while True:
+    while agent.isAlive and not agent.isEscaping:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_p:
+                    # print("pause changed")
+                    pause = not pause
         
-        pygame.display.flip()
+        if not pause:
+            # print('===========================', agent.agentLoc)
+            agent.perceiveEnvironment(map)
+            # print('kb: ', agent.kb.clauses)
+
+            nextRoom = agent.findASafeStep(map.size())
+            if nextRoom == [-1, -1]:
+                nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
+                print('isShooting', isShooting)
+                if maybePit and agent.foundExit:
+                    nextRoom = [1, 1]
+                    agent.isEscaping = True
+                    print('escape')
+
+            print(nextRoom)
+
+            player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
+            agent.agentLoc = nextRoom
+
+            pause = not pause
+
         cellGroup.draw(screen)
         cellGroup.update()
 
@@ -108,9 +145,14 @@ def main():
         pitGroups.draw(screen)
         pitGroups.update()
 
+        goldGroup.draw(screen)
+        goldGroup.update()
+
 
         playerGroup.draw(screen)
         playerGroup.update()
+
+        pygame.display.flip()
 
         clock.tick(120)
 
