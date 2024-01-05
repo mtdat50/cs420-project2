@@ -15,8 +15,6 @@ def getCellIDinGroup(pos_x: int, pos_y: int, map_size: int):
     return pos_x - 1 + (map_size - pos_y) * map_size
 
 def check_breeze_stench_overwritting(cell_info):
-    if 'W' in cell_info:
-        return False
     if 'P' in cell_info:
         return False
     
@@ -37,13 +35,21 @@ def main():
     pygame.display.set_caption('Wumpus World')
     pygame.init()
     clock = pygame.time.Clock()
-    font = pygame.font.SysFont("freesansbold" , 18 , bold = True)
+    font = pygame.font.SysFont("freesansbold" , 50 , bold = True)
 
     # Game screen
     screen_width = map.size() * CELL_SIZE
     screen_height = map.size() * CELL_SIZE
     print(screen_width, screen_height)
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.HWSURFACE|pygame.DOUBLEBUF|pygame.RESIZABLE)
+
+    # Side menu setup
+    side_menu_height = 100
+    side_menu_color = (200, 200, 200)
+    side_menu_surface = pygame.Surface((screen_width, side_menu_height))
+    side_menu_rect = side_menu_surface.get_rect()
+
+    screen = pygame.display.set_mode((screen_width, screen_height + side_menu_height), pygame.HWSURFACE|pygame.DOUBLEBUF|pygame.RESIZABLE)
 
     # Pits Group
     pitGroups = pygame.sprite.Group()
@@ -101,7 +107,6 @@ def main():
     # Exit door
     doorGroup = pygame.sprite.Group()
     doorGroup.add(Object("Graphics\\closed_door.png", cellGroup.sprites()[getCellIDinGroup(1, 1, map.size())], initial_scale=INIT_ZOOM))
-    fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(1, 1, map.size())].fog)
 
     # Player Group
     playerGroup = pygame.sprite.Group()
@@ -213,7 +218,14 @@ def main():
                         for sprite in monster.group:
                             monsterGroups.remove(sprite)
                 arrowGroup.remove(arrowGroup.sprites()[0])
+        
+        # Draw bottom menu
+        side_menu_surface.fill(side_menu_color)
+        screen.blit(side_menu_surface, (0, screen_height))
 
+        # Draw score on the bottom menu
+        score_surface = font.render(f"Score: {agent.point}", True, (0, 0, 0))
+        screen.blit(score_surface, (10, screen_height + 20))
 
         pygame.display.flip()
 
