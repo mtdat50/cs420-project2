@@ -8,6 +8,7 @@ from Player import Player
 from Object import Object
 from constants import CELL_SIZE
 from sys import argv 
+import reward
 
 def getCellIDinGroup(pos_x: int, pos_y: int, map_size: int):
     # print(pos_x, pos_y, map_size, pos_x - 1 + (map_size - pos_y) * map_size)
@@ -151,6 +152,7 @@ def main():
                 path = agent.playPath(nextRoom)
 
             if len(path) != 0:
+                agent.point += reward.PUNISHMENT_FOR_MOVING
                 nextRoom = path[0]
                 path.pop(0)
                 if len(path) == 0 and isShooting:
