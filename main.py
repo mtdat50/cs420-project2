@@ -20,8 +20,6 @@ def check_breeze_stench_overwritting(cell_info):
         return False
     if 'P' in cell_info:
         return False
-    if 'G' in cell_info:
-        return False
     
     return True
 
