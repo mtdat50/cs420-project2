@@ -163,6 +163,9 @@ def main():
         pitGroups.draw(screen)
         pitGroups.update()
 
+        doorGroup.draw(screen)
+        doorGroup.update()
+
         goldGroup.draw(screen)
         goldGroup.update()
 
