@@ -120,7 +120,10 @@ def perceiveEnvironment(self, map):
     
     # gold
     if 'G' in map[self.agentLoc[0]][self.agentLoc[1]]:
-        self.point += 1000
+        self.point += reward.REWARD_FOR_GRABBING_GOLD
+    if 'B' in map[self.agentLoc[0]][self.agentLoc[1]] or\
+        'S' in map[self.agentLoc[0]][self.agentLoc[1]]:
+        self.point += reward.PUNISHMENT_FOR_DYING
 
     surroundingCells = []
     for k in range(0, 4):
