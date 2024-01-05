@@ -9,6 +9,16 @@ from Object import Object, Wumpus, Arrow
 from constants import CELL_SIZE
 from sys import argv 
 import reward
+import tkinter
+import tkinter.filedialog
+
+def prompt_file():
+    """Create a Tk file dialog and cleanup when finished"""
+    top = tkinter.Tk()
+    top.withdraw()  # hide window
+    file_name = tkinter.filedialog.askopenfilename(parent=top)
+    top.destroy()
+    return file_name
 
 def getCellIDinGroup(pos_x: int, pos_y: int, map_size: int):
     # print(pos_x, pos_y, map_size, pos_x - 1 + (map_size - pos_y) * map_size)
@@ -20,10 +30,10 @@ def check_breeze_stench_overwritting(cell_info):
     
     return True
 
-def main():
+def main(filePath):
     agent = Agent()
     # map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
-    map, agent.agentLoc = Map.input("tests/test4.txt")
+    map, agent.agentLoc = Map.input(filePath)
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
@@ -36,6 +46,7 @@ def main():
     pygame.init()
     clock = pygame.time.Clock()
     font = pygame.font.SysFont("freesansbold" , 50 , bold = True)
+    small_font = pygame.font.SysFont("freesansbold" , 30 , bold = True)
 
     # Game screen
     screen_width = map.size() * CELL_SIZE
@@ -44,7 +55,7 @@ def main():
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.HWSURFACE|pygame.DOUBLEBUF|pygame.RESIZABLE)
 
     # Side menu setup
-    side_menu_height = 100
+    side_menu_height = 200
     side_menu_color = (200, 200, 200)
     side_menu_surface = pygame.Surface((screen_width, side_menu_height))
     side_menu_rect = side_menu_surface.get_rect()
@@ -144,6 +155,11 @@ def main():
                         pause = True
                 if event.key == pygame.K_f:
                     fog = not fog
+                if event.key == pygame.K_m:
+                    f = prompt_file()
+                    if len(f) > 0:
+                        main(f)
+                        return
         
         if (agent.isAlive and not agent.isEscaping) or len(path) != 0:
             if not pause:
@@ -236,6 +252,15 @@ def main():
         score_surface = font.render(f"Score: {agent.point}", True, (0, 0, 0))
         screen.blit(score_surface, (10, screen_height + 20))
 
+        # Draw instructions on the bottom menu
+        move_instruction_surface = small_font.render(f"Move: P", True, (0, 0, 0))
+        togglefog_instruction_surface = small_font.render(f"Toggle Fog: F", True, (0, 0, 0))
+        browse_instruction_surface = small_font.render(f"Browse input map: M", True, (0, 0, 0))
+
+        screen.blit(move_instruction_surface, (10, screen_height + 60))
+        screen.blit(togglefog_instruction_surface, (10, screen_height + 90))
+        screen.blit(browse_instruction_surface, (10, screen_height + 120))
+
         # Game over display
         if not agent.isAlive:
             screen.blit(death_noti, (10, screen_height/2))
@@ -252,4 +277,4 @@ def updateMap(shotRoomCoord):
     pass
 
 if __name__ == "__main__":
-    main()
+    main("tests\\test1.txt")
