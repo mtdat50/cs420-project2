@@ -136,13 +136,14 @@ def main():
                 agent.perceiveEnvironment(map)
                 # print('kb: ', agent.kb.clauses)
 
-                if (agent.agentLoc[0], agent.agentLoc[1]) == (3, 2):
-                    o = 0
+                # if (agent.agentLoc[0], agent.agentLoc[1]) == (2, 9):
+                #     o = 0
                 nextRoom = agent.findASafeStep(map.size())
                 isShooting = False
                 if nextRoom == [-1, -1]:
                     nextRoom, isShooting, maybePit = agent.forceAStep(map.size())
                     print('isShooting', isShooting)
+                    print('maybePit', maybePit)
                     if maybePit and agent.foundExit:
                         nextRoom = [1, 1]
                         agent.isEscaping = True
@@ -150,6 +151,8 @@ def main():
 
                 print(nextRoom)
                 path = agent.playPath(nextRoom)
+                if (nextRoom[0], nextRoom[1]) == (2, 9):
+                    o = 0
 
             if len(path) != 0:
                 agent.point += reward.PUNISHMENT_FOR_MOVING

@@ -19,6 +19,12 @@ def remove(self, source):
             self.clauses.pop(i)
             break
 
+def findLiteral(self, literal):
+    for clause in self.clauses:
+        if literal in clause:
+            return True
+    return False
+
 class KnownledgeBase:
     def __init__(self):
         self.__clauses = []
@@ -27,6 +33,7 @@ class KnownledgeBase:
     solve = solve
     addClause = addClause
     remove = remove
+    findLiteral = findLiteral
 
     @property
     def clauses(self):
