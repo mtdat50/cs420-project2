@@ -22,3 +22,8 @@ class Player(pygame.sprite.Sprite):
 
     def play_path(self, next_cell):
         self.rect.center = next_cell.rect.center
+
+
+
+
+

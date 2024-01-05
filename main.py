@@ -5,7 +5,7 @@ import sys
 import pygame
 from Object import Cell
 from Player import Player
-from Object import Object
+from Object import Object, Arrow
 from constants import CELL_SIZE
 from sys import argv 
 
@@ -26,7 +26,7 @@ def check_breeze_stench_overwritting(cell_info):
 def main():
     agent = Agent()
     # map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
-    map, agent.agentLoc = Map.input("tests/test1.txt")
+    map, agent.agentLoc = Map.input("tests/test10.txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
@@ -43,7 +43,6 @@ def main():
     # Game screen
     screen_width = map.size() * CELL_SIZE
     screen_height = map.size() * CELL_SIZE
-    print(screen_width, screen_height)
     screen = pygame.display.set_mode((screen_width, screen_height), pygame.HWSURFACE|pygame.DOUBLEBUF|pygame.RESIZABLE)
 
     # Pits Group
@@ -110,12 +109,15 @@ def main():
     playerGroup.add(player)
     fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
 
+    arrowGroup = pygame.sprite.Group()
+
     # Misc
     pause = True
     fog = True
     
     path = []
     isShooting = False
+    waiting_for_arrow = False
     # Main game loop
     while (agent.isAlive and not agent.isEscaping) or len(path) != 0:
         for event in pygame.event.get():
@@ -129,7 +131,7 @@ def main():
                 if event.key == pygame.K_f:
                     fog = not fog
         
-        if not pause:
+        if not pause and not waiting_for_arrow:
             if len(path) == 0:
                 # print('===========================', agent.agentLoc)
                 agent.perceiveEnvironment(map)
@@ -155,9 +157,15 @@ def main():
                 path.pop(0)
                 if len(path) == 0 and isShooting:
                     agent.shoot(nextRoom, map)
-                player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
-                agent.agentLoc = nextRoom
-                fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
+                    # Shoot wumpus
+                    arrow = Arrow(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].rect,
+                                   cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
+                    arrowGroup.add(arrow)
+                    waiting_for_arrow = True
+                if not waiting_for_arrow:
+                    player.play_path(cellGroup.sprites()[getCellIDinGroup(nextRoom[1], nextRoom[0], map.size())])
+                    agent.agentLoc = nextRoom
+                    fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(agent.agentLoc[1], agent.agentLoc[0], map.size())].fog)
 
             pause = not pause
 
@@ -185,6 +193,16 @@ def main():
         if fog:
             fogGroup.draw(screen)
             fogGroup.update()
+
+        arrowGroup.draw(screen)
+        arrowGroup.update()
+
+        if waiting_for_arrow:
+            # Check if the arrow has reached the target cell
+            if arrowGroup.sprites()[0].reached_target:
+                waiting_for_arrow = False
+                print("Arrow reached the target cell!")
+                arrowGroup.remove(arrowGroup.sprites()[0])
 
         pygame.display.flip()
 
