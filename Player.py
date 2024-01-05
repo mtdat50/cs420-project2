@@ -1,5 +1,5 @@
 import pygame
-from Cell import Cell
+from Object import Cell
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, picture_path, cell: Cell):
