@@ -14,6 +14,19 @@ def getCellIDinGroup(pos_x: int, pos_y: int, map_size: int):
     # print(pos_x, pos_y, map_size, pos_x - 1 + (map_size - pos_y) * map_size)
     return pos_x - 1 + (map_size - pos_y) * map_size
 
+def check_breeze_stench_overwritting(cell_info):
+    print(cell_info)
+    if 'W' in cell_info:
+        return False
+    if 'A' in cell_info:
+        return False
+    if 'P' in cell_info:
+        return False
+    if 'G' in cell_info:
+        return False
+    
+    return True
+
 def main():
     agent = Agent()
     map, agent.agentLoc = input("tests/test2.txt")
@@ -68,10 +81,11 @@ def main():
     fogGroup = pygame.sprite.Group()
 
     # Cell Group
+    overwrite_breeze_stench = set('WPGA$')
     cellGroup = pygame.sprite.Group()
     for y in range(loop_n-1, 0, -1):
         for x in range(1, loop_n):
-            new_cell = Cell("Graphics\\catacombs_", CELL_SIZE/2 + CELL_SIZE * (x-1), CELL_SIZE/2 + CELL_SIZE * (loop_n - 1 - y))
+            new_cell = Cell(CELL_SIZE/2 + CELL_SIZE * (x-1), CELL_SIZE/2 + CELL_SIZE * (loop_n - 1 - y), map[y][x])
             cellGroup.add(new_cell)
             fogGroup.add(new_cell.fog)
             
@@ -79,20 +93,29 @@ def main():
                 newPitGroup = pygame.sprite.Group()
                 pit = Object("Graphics\\trap_arrow.png", new_cell)
                 newPitGroup.add(pit)
-                newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left-CELL_SIZE, pos_y=pit.rect.top))
-                newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left+CELL_SIZE, pos_y=pit.rect.top))
-                newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left, pos_y=pit.rect.top-CELL_SIZE))
-                newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left, pos_y=pit.rect.top+CELL_SIZE))
+                print(y, x)
+                if check_breeze_stench_overwritting(map[y][x-1]):
+                    newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left-CELL_SIZE, pos_y=pit.rect.top))
+                if check_breeze_stench_overwritting(map[y][x+1]):
+                    newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left+CELL_SIZE, pos_y=pit.rect.top))
+                if check_breeze_stench_overwritting(map[y-1][x]):
+                    newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left, pos_y=pit.rect.top+CELL_SIZE))
+                if check_breeze_stench_overwritting(map[y+1][x]):
+                    newPitGroup.add(Object("Graphics\\air_magic.png", pos_x=pit.rect.left, pos_y=pit.rect.top-CELL_SIZE))
                 pitGroups.add(newPitGroup)
 
             if 'W' in map[y][x]:
                 newMonsterGroup = pygame.sprite.Group()
                 monster = Object("Graphics\\zombie_ogre.png", new_cell)
                 newMonsterGroup.add(monster)
-                newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left-CELL_SIZE, pos_y=monster.rect.top))
-                newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left+CELL_SIZE, pos_y=monster.rect.top))
-                newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left, pos_y=monster.rect.top-CELL_SIZE))
-                newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left, pos_y=monster.rect.top+CELL_SIZE))
+                if check_breeze_stench_overwritting(map[y][x-1]):
+                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left-CELL_SIZE, pos_y=monster.rect.top))
+                if check_breeze_stench_overwritting(map[y][x+1]):
+                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left+CELL_SIZE, pos_y=monster.rect.top))
+                if check_breeze_stench_overwritting(map[y-1][x]):
+                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left, pos_y=monster.rect.top+CELL_SIZE))
+                if check_breeze_stench_overwritting(map[y+1][x]):
+                    newMonsterGroup.add(Object("Graphics\\cloud_poison_1.png", pos_x=monster.rect.left, pos_y=monster.rect.top-CELL_SIZE))
                 monsterGroups.add(newMonsterGroup)
 
             if 'G' in map[y][x]:
@@ -100,7 +123,8 @@ def main():
                 goldGroup.add(newGold)
 
     # Exit door
-    cellGroup.add(Object("Graphics\\closed_door.png", cellGroup.sprites()[getCellIDinGroup(1, 1, map.size())]))
+    doorGroup = pygame.sprite.Group()
+    doorGroup.add(Object("Graphics\\closed_door.png", cellGroup.sprites()[getCellIDinGroup(1, 1, map.size())]))
     fogGroup.remove(cellGroup.sprites()[getCellIDinGroup(1, 1, map.size())].fog)
 
     # Player Group
@@ -154,15 +178,16 @@ def main():
         cellGroup.draw(screen)
         cellGroup.update()
 
+        pitGroups.draw(screen)
+        pitGroups.update()
         
         monsterGroups.draw(screen)
         monsterGroups.update()
 
-        pitGroups.draw(screen)
-        pitGroups.update()
-
         goldGroup.draw(screen)
         goldGroup.update()
+
+        doorGroup.draw(screen)
 
         playerGroup.draw(screen)
         playerGroup.update()
@@ -170,6 +195,7 @@ def main():
         if fog:
             fogGroup.draw(screen)
             fogGroup.update()
+
 
         pygame.display.flip()
 
