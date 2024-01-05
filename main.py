@@ -26,7 +26,7 @@ def check_breeze_stench_overwritting(cell_info):
 def main():
     agent = Agent()
     # map, agent.agentLoc = input("tests/test"+argv[1]+".txt")
-    map, agent.agentLoc = Map.input("tests/test1.txt")
+    map, agent.agentLoc = Map.input("tests/test10.txt")
 
     loop_n = map.size() + 1 # true loop size, not map's size
     for y in range(loop_n-1, 0, -1):
